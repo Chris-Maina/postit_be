@@ -36,7 +36,7 @@ router.post('/register', async (req, res, next) => {
     if (userExists) throw createError.Conflict(`${email} has already been taken`);
 
     
-    const hashedPassword = User.passwordHash(password);
+    const hashedPassword = await User.passwordHash(password);
     const response = await userQuery.insert({
       email,
       last_name,
@@ -75,7 +75,6 @@ router.post('/login', async (req, res, next) => {
       access_token: token,
     });
   } catch (error) {
-    console.log('error >>>>>>> catch', error)
     if (error.isJoi) return next(createError.BadRequest("Email/password is not valid"));
     next(error);
   }
