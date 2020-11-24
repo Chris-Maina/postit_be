@@ -6,7 +6,8 @@
   "author": "Chris Maina",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon index.js",
+    "dev": "nodemon index.js",
+    "start": "node index.js",
     "migrate:latest": "./node_modules/.bin/knex migrate:latest",
     "migrate:rollback": "./node_modules/.bin/knex migrate:rollback",
     "migrate:down": "./node_modules/.bin/knex migrate:down",
