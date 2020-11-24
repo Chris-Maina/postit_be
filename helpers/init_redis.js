@@ -2,7 +2,7 @@ const redis = require('redis');
 const { promisify } = require('util');
 
 const redisCient = redis.createClient([
-  host=port=process.env.REDIS_HOST,
+  host=process.env.REDIS_HOST,
   port=process.env.REDIS_PORT,
   password=process.env.REDIS_PASSWORD
 ]);
