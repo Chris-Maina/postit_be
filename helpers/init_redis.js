@@ -1,11 +1,14 @@
 const redis = require('redis');
 const { promisify } = require('util');
 
-const redisCient = redis.createClient({
-  host=process.env.REDIS_HOST,
-  port=process.env.REDIS_PORT,
-  password=process.env.REDIS_PASSWORD
-});
+const redisCient = redis.createClient(
+  process.env.REDIS_PORT,
+  process.env.REDIS_HOST
+);
+
+if (process.env.NODE_ENV === 'production') {
+  redisCient.auth(process.env.REDIS_PASSWORD);
+}
 
 redisCient.on('connect', () => console.log('Connecting to redis...'));
 redisCient.on('ready', () => console.log('Connected to redis and ready to use...'));
