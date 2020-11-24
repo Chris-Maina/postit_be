@@ -22,7 +22,7 @@ usersCache =  async (req, res, next) => {
       next();
     }
   } catch (error) { 
-    next(createError(500, err));
+    next(error);
   }
 }
 
