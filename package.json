@@ -1,0 +1,35 @@
+{
+  "name": "voting_be",
+  "version": "1.0.0",
+  "description": "A simple posts voting API",
+  "main": "index.js",
+  "author": "Chris Maina",
+  "license": "MIT",
+  "scripts": {
+    "start": "nodemon index.js",
+    "migrate:latest": "./node_modules/.bin/knex migrate:latest",
+    "migrate:rollback": "./node_modules/.bin/knex migrate:rollback",
+    "migrate:down": "./node_modules/.bin/knex migrate:down",
+    "migrate:up": "./node_modules/.bin/knex migrate:up",
+    "migrate:make": "./node_modules/.bin/knex migrate:make"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  },
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "http-errors": "^1.8.0",
+    "joi": "^17.2.1",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^0.21.6",
+    "morgan": "^1.10.0",
+    "objection": "^2.2.3",
+    "pg": "^8.4.0",
+    "redis": "^3.0.2"
+  }
+}
