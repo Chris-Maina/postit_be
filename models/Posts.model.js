@@ -8,6 +8,7 @@ class Post extends Model {
   static get relationMappings() {
     const Vote = require('./Votes.model')
     const User = require('./Users.model')
+    const Comment = require('./Comments.model');
     return {
       posted_by: {
         relation: Model.BelongsToOneRelation,
@@ -26,16 +27,25 @@ class Post extends Model {
           to: 'votes.post_id'
         }
       },
-      voters: {
-        relation: Model.ManyToManyRelation,
-        modelClass: User,
+      // voters: {
+      //   relation: Model.ManyToManyRelation,
+      //   modelClass: User,
+      //   join: {
+      //     from: 'posts.id',
+      //     through: {
+      //       from: 'votes.post_id',
+      //       to: 'votes.user_id'
+      //     },
+      //     to: 'votes.post_id'
+      //   }
+      // },
+      comments: {
+        relation: Model.HasManyRelation,
+        filter: query => query.select('id', 'title', 'created_at'),
+        modelClass: Comment,
         join: {
           from: 'posts.id',
-          through: {
-            from: 'votes.post_id',
-            to: 'votes.user_id'
-          },
-          to: 'votes.post_id'
+          to: 'comments.post_id'
         }
       }
     }
