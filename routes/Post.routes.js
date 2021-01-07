@@ -36,7 +36,13 @@ router.get('/', postsCache, async (req, res, next) => {
         'posts.updated_at',
       ])
       .orderBy('created_at', 'desc')      
-      .withGraphFetched('[posted_by, votes]')
+      .withGraphFetched({
+        posted_by: true,
+        votes: true,
+        comments: {
+          commented_by: true
+        }
+      })
 
     // cache data for 1min
     await SET_ASYNC('posts', JSON.stringify(response), 'EX', 60);
@@ -67,7 +73,13 @@ router.post('/', verifyToken, async (req, res, next) => {
         'posts.created_at',
         'posts.updated_at',
       ])
-      .withGraphFetched('[posted_by, votes]')
+      .withGraphFetched({
+        posted_by: true,
+        votes: true,
+        comments: {
+          commented_by: true
+        }
+      })
 
      // Cache Invalidation: del-cache-on-update 
      await DEL_ASYNC('posts');
@@ -107,7 +119,13 @@ router.put('/:id', verifyToken, async (req, res, next) => {
         'posts.updated_at',
         // Post.relatedQuery('votes').select(raw('coalesce(SUM(vote_type::int), 0)')).as('vote_count')
       ])
-      .withGraphFetched('[posted_by, votes]')
+      .withGraphFetched({
+        posted_by: true,
+        votes: true,
+        comments: {
+          commented_by: true
+        }
+      })
      
     // Cache Invalidation: del-cache-on-update 
     await DEL_ASYNC('posts');
@@ -147,7 +165,13 @@ router.patch('/:id', verifyToken, async (req, res, next) => {
         'posts.updated_at',
         // Post.relatedQuery('votes').select(raw('coalesce(SUM(vote_type::int), 0)')).as('vote_count')
       ])
-      .withGraphFetched('[posted_by, votes]')
+      .withGraphFetched({
+        posted_by: true,
+        votes: true,
+        comments: {
+          commented_by: true
+        }
+      })
 
     // Cache Invalidation: del-cache-on-update 
     await DEL_ASYNC('posts');

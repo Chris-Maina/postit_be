@@ -31,6 +31,15 @@ const updatePostSchema = Joi.object({
   created_by: Joi.optional(),
 });
 
+const commentSchema = Joi.object({
+  post_id: Joi.number().required(),
+  user_id: Joi.number().required(),
+  title: Joi.string().required()
+});
+
+const updateCommentSchema = commentSchema.keys({
+  id: Joi.number().required,
+});
 
 module.exports = {
   authSchema,
@@ -38,4 +47,6 @@ module.exports = {
   votingSchema,
   postSchema,
   updatePostSchema,
+  commentSchema,
+  updateCommentSchema
 }
