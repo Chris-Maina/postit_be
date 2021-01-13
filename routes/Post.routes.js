@@ -187,7 +187,7 @@ router.patch('/:id', verifyToken, async (req, res, next) => {
 router.delete('/:id', verifyToken, async (req, res, next) => {
   const { id } = req.params;
   try {
-    await Post.query().delete({ id });
+    await Post.query().deleteById(id);
 
     // Cache Invalidation: del-cache-on-update 
     await DEL_ASYNC('posts');

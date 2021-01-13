@@ -38,7 +38,8 @@ const commentSchema = Joi.object({
 });
 
 const updateCommentSchema = commentSchema.keys({
-  id: Joi.number().required,
+  id: Joi.number().required(),
+  post_id: Joi.number().optional(),
 });
 
 module.exports = {
