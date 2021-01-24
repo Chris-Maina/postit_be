@@ -3,6 +3,8 @@ const createError = require('http-errors');
 
 const Post = require('../models/Posts.model');
 const { verifyToken } = require('../helpers/jwt_helper');
+const { broadcast } = require('../helpers/websocket_helpers');
+const { ADD_POST, UPDATE_POST, DELETE_POST } = require('../constants');
 const { GET_ASYNC, SET_ASYNC, DEL_ASYNC } = require('../helpers/init_redis');
 const { postSchema, updatePostSchema } = require('../helpers/validation_schema');
 
@@ -61,10 +63,8 @@ router.post('/', verifyToken, async (req, res, next) => {
       ...req.body,
       created_by: req.payload.id
     });
-    const postQuery = Post.query();
-    
-    const post = await postQuery.insert(result);
-    
+
+    const post = await Post.query().insert(result); 
     const postWithRelations = await Post.query()
       .findById(post.id)
       .select([
@@ -81,11 +81,14 @@ router.post('/', verifyToken, async (req, res, next) => {
         }
       })
 
+    // broad cast to connected clients
+    broadcast(req.app.locals.clients, postWithRelations, ADD_POST);
+
      // Cache Invalidation: del-cache-on-update 
      await DEL_ASYNC('posts');
 
     res.status(201);
-    res.send(postWithRelations);
+    res.send({ message: 'Successfully added post' });
   } catch (error) {
     if (error.isJoi) return next(createError.BadRequest("Title and created by are required"));
     next(error);
@@ -101,12 +104,6 @@ router.put('/:id', verifyToken, async (req, res, next) => {
         id: parseInt(req.params.id, 10)
       }
     } 
-    if (!reqBody.created_by) {
-      reqBody = {
-        ...reqBody,
-        created_by: req.payload.id
-      }
-    }
 
     await updatePostSchema.validateAsync(reqBody);
     await Post.query().findById(reqBody.id).update(reqBody);
@@ -130,8 +127,11 @@ router.put('/:id', verifyToken, async (req, res, next) => {
     // Cache Invalidation: del-cache-on-update 
     await DEL_ASYNC('posts');
 
+    // broad cast to connected clients
+    broadcast(req.app.locals.clients, response, UPDATE_POST);
+
     res.status(200);
-    res.send(response);
+    res.send({ message: 'Successfully updated post' });
   } catch (error) {
     if (error.isJoi) return next(createError.BadRequest("Post id is required"));
     next(error);
@@ -147,12 +147,6 @@ router.patch('/:id', verifyToken, async (req, res, next) => {
         id: parseInt(req.params.id, 10)
       }
     } 
-    if (!reqBody.created_by) {
-      reqBody = {
-        ...reqBody,
-        created_by: req.payload.id
-      }
-    }
 
     await updatePostSchema.validateAsync(reqBody);
     await Post.query().findById(reqBody.id).patch(reqBody);
@@ -176,9 +170,13 @@ router.patch('/:id', verifyToken, async (req, res, next) => {
     // Cache Invalidation: del-cache-on-update 
     await DEL_ASYNC('posts');
 
+    // broad cast to connected clients
+    broadcast(req.app.locals.clients, response, UPDATE_POST);
+
     res.status(200);
-    res.send(response);
+    res.send({ message: 'Successfully updated post' });
   } catch (error) {
+    console.log('error', error)
     if (error.isJoi) return next(createError.BadRequest("Post id is required"));
     next(error);
   } 
@@ -191,6 +189,8 @@ router.delete('/:id', verifyToken, async (req, res, next) => {
 
     // Cache Invalidation: del-cache-on-update 
     await DEL_ASYNC('posts');
+    // broad cast to connected clients
+    broadcast(req.app.locals.clients, { id }, DELETE_POST);
 
     res.status(200);
     res.send({

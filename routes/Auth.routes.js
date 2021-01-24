@@ -58,9 +58,7 @@ router.post('/login', async (req, res, next) => {
     const result = await loginSchema.validateAsync(req.body);
     const { email, password } = result;
 
-    const userQuery = User.query();
-    const userRes = await userQuery
-    .findOne({ email });
+    const userRes = await User.query().findOne({ email });
     if (!userRes) throw createError.NotFound(`User is not registered`);
     
     const isPasswordValid = await User.validatePassword(password, userRes.password);
@@ -199,7 +197,7 @@ router.post('/reset-password', async (req, res, next) => {
     userQuery.findById(userExists.id).patch({ password: hashedPassword });
 
     const token = await generateToken(userExists.id);
-    const newRefreshToken = await generateRefreshToken(userExists[0].id, res);
+    const newRefreshToken = await generateRefreshToken(userExists.id, res);
 
     res.status(201);
     return res.send({

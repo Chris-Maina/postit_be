@@ -26,9 +26,6 @@ const postSchema = Joi.object({
 const updatePostSchema = Joi.object({
   id: Joi.number().required(),
   title: Joi.string(),
-  updated_at: Joi.optional(),
-  created_at: Joi.optional(),
-  created_by: Joi.optional(),
 });
 
 const commentSchema = Joi.object({

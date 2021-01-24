@@ -2,7 +2,10 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const createError = require('http-errors');
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
+const http = require('http');
+const WebSocket = require("ws");
+
 
 // Initialize knex wih objection
 require('./helpers/init_knex');
@@ -41,5 +44,13 @@ app.use((err, req, res, next) => {
 })
 
 const PORT = process.env.PORT || 3100;
+const server = http.createServer(app);
+const webSocketServer = new WebSocket.Server({ server });
+webSocketServer.on("connection", (webSocket) => {
+  // console.info("Total connected clients:", webSocketServer.clients.size);
 
-app.listen(PORT, () => console.log(`Server running on port http://localhost:${PORT}`))
+  app.locals.wsInstance = webSocket
+  app.locals.clients = webSocketServer.clients;
+});
+
+server.listen(PORT, () => console.log(`Server running on port http://localhost:${PORT}`));
