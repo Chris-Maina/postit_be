@@ -13,8 +13,14 @@ const { GET_ASYNC, DEL_ASYNC, SET_ASYNC } = require('../helpers/init_redis');
 
 /* Middleware */
 usersCache =  async (req, res, next) => {
+  let id = null;
   try {
-    const response = await GET_ASYNC('users');
+    if (req.params.id) {
+      id = req.params.id
+    } else {
+      id = req.payload.id
+    }
+    const response = await GET_ASYNC(id);
     if (response !== null) {
       res.status(200);
       res.send(JSON.parse(response));
@@ -78,14 +84,12 @@ router.post('/login', async (req, res, next) => {
   }
 });
 
-router.get('/users', usersCache, async (req, res, next) => {
+router.get('/users', async (req, res, next) => {
   try {
     const response = await User.query()
       .select('id', 'email', 'first_name', 'last_name')
       .withGraphFetched('posts.votes');
 
-    // cache data for 1min
-    await SET_ASYNC(`users`, JSON.stringify(response), 'EX', 60);
     res.status(200);
     return res.send(response)
   } catch (error) {
@@ -93,7 +97,12 @@ router.get('/users', usersCache, async (req, res, next) => {
   }
 });
 
-router.get('/user/:id', verifyToken, async (req, res, next) => {
+/**
+ * Fetch data from cache. If cache-hit return data
+ * If cache miss, query DB and add to cache
+ *
+ */
+router.get('/user/:id', verifyToken, usersCache, async (req, res, next) => {
   let id = null;
   try {
     if (req.params.id) {
@@ -105,8 +114,11 @@ router.get('/user/:id', verifyToken, async (req, res, next) => {
       .findById(id)
       .select('id', 'email', 'first_name', 'last_name')
       .withGraphFetched('posts.votes');
-
     if (!response) return next(createError.NotFound());
+
+    // cache data for 1min
+    await SET_ASYNC(id.toString(), JSON.stringify(response), 'EX', 60);
+
     res.status(200);
     return res.send(response)
   } catch (error) {
@@ -116,22 +128,26 @@ router.get('/user/:id', verifyToken, async (req, res, next) => {
 
 router.patch('/user/:id', verifyToken, async (req, res, next) => {
   const { id } = req.params;
-
+  let user = null;
   try {
+    // GET user from cache
+    user = await GET_ASYNC(id);
+
     const userQuery = User.query();
-    const user = await userQuery.findById(id);
+    if (!user) {
+      user = await userQuery.findById(id);
+    }
     if (!user) return next(createError.NotFound());
     
-    await userQuery.findById(id).patch(req.body);
-    const response = await User.query()
-      .findById(id)
-      .select('id', 'email', 'first_name', 'last_name')
+    const response = await userQuery
+      .patch(req.body)
+      .where('id', id)
+      .returning('id', 'email', 'first_name', 'last_name')
       .withGraphFetched('posts.votes');
 
-    
-    // Cache Invalidation: del-cache-on-update 
-    await DEL_ASYNC('users');
 
+    //  Cache Invalidation: del-cache-on-update
+    await DEL_ASYNC(id)
     res.status(200);
     return res.send(response);
   } catch (error) {
@@ -142,6 +158,7 @@ router.patch('/user/:id', verifyToken, async (req, res, next) => {
 router.put('/user/:id', verifyToken, async (req, res, next) => {
 
   let id  = null;
+  let user = null;
   try {
     if (req.params.id) {
       id = req.params.id
@@ -149,14 +166,21 @@ router.put('/user/:id', verifyToken, async (req, res, next) => {
       id = req.payload.id
     }
     const userQuery = User.query();
-    const user = await userQuery.findById(id);
+
+    user = await GET_ASYNC(id);
+    if (!user) {
+      user = await userQuery.findById(id);
+    }
     if (!user) return next(createError.NotFound());
     
-    await userQuery.findById(id).update(req.body)
-    const response = await userQuery.findById(id).withGraphFetched('posts.votes');
+    const response = await userQuery
+      .update(req.body)
+      .where('id', id)
+      .returning('id', 'email', 'first_name', 'last_name')
+      .withGraphFetched('posts.votes');
 
     // Cache Invalidation: del-cache-on-update 
-    await DEL_ASYNC('users');
+    await DEL_ASYNC(id);
 
     res.status(200);
     res.send(response)
