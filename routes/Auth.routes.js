@@ -143,6 +143,7 @@ router.patch('/user/:id', verifyToken, async (req, res, next) => {
       .patch(req.body)
       .where('id', id)
       .returning('id', 'email', 'first_name', 'last_name')
+      .first()
       .withGraphFetched('posts.votes');
 
 
@@ -177,6 +178,7 @@ router.put('/user/:id', verifyToken, async (req, res, next) => {
       .update(req.body)
       .where('id', id)
       .returning('id', 'email', 'first_name', 'last_name')
+      .first()
       .withGraphFetched('posts.votes');
 
     // Cache Invalidation: del-cache-on-update 
