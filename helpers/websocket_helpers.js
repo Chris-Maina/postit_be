@@ -1,8 +1,7 @@
 const WebSocket = require("ws");
 
 const broadcast = (clients, data, action) => {
-  clients.forEach((client) => {
-
+  (clients && clients.length) && clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
 
       client.send(JSON.stringify({ post: data, action }));
