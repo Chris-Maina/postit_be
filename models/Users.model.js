@@ -34,18 +34,18 @@ class User extends Model {
           to: 'posts.created_by'
         }
       },
-      posts_with_votes: {
-        relation: Model.ManyToManyRelation,
-        modelClass: Post,
-        join: {
-          from: 'users.id',
-          through: {
-            from: 'votes.user_id',
-            to: 'votes.post_id'
-          },
-          to: 'posts.id'
-        }
-      }
+      // posts_with_votes: {
+      //   relation: Model.ManyToManyRelation,
+      //   modelClass: Post,
+      //   join: {
+      //     from: 'users.id',
+      //     through: {
+      //       from: 'votes.user_id',
+      //       to: 'votes.post_id'
+      //     },
+      //     to: 'posts.id'
+      //   }
+      // }
     }
   }
 }
