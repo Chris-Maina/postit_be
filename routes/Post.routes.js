@@ -2,10 +2,10 @@ const router = require('express').Router();
 const createError = require('http-errors');
 
 const Post = require('../models/Posts.model');
+const { DEL_ASYNC } = require('../helpers/init_redis');
 const { verifyToken } = require('../helpers/jwt_helper');
 const { broadcast } = require('../helpers/websocket_helpers');
 const { ADD_POST, UPDATE_POST, DELETE_POST } = require('../constants');
-const { GET_ASYNC, DEL_ASYNC } = require('../helpers/init_redis');
 const { postSchema, updatePostSchema } = require('../helpers/validation_schema');
 
 router.get('/', async (req, res, next) => {
@@ -44,7 +44,7 @@ router.post('/', verifyToken, async (req, res, next) => {
     const response = await Post
       .query()
       .insert(result)
-      .returning('id', 'title', 'created_at', 'updated_at')
+      .returning('id', 'title', 'created_at', 'updated_at', 'created_by')
       .withGraphFetched({
         posted_by: true,
         votes: true,
@@ -82,7 +82,7 @@ router.put('/:id', verifyToken, async (req, res, next) => {
       .query()
       .update(reqBody)
       .where('id', reqBody.id)
-      .returning('id', 'title', 'created_at', 'updated_at')
+      .returning('id', 'title', 'created_at', 'updated_at', 'created_by')
       .first()
       .withGraphFetched({
         posted_by: true,
@@ -121,7 +121,7 @@ router.patch('/:id', verifyToken, async (req, res, next) => {
       .query()
       .patch(reqBody)
       .where('id', reqBody.id)
-      .returning('id', 'title', 'created_at', 'updated_at')
+      .returning('id', 'title', 'created_at', 'updated_at', 'created_by')
       .first()
       .withGraphFetched({
         posted_by: true,
