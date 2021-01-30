@@ -47,8 +47,6 @@ const PORT = process.env.PORT || 3100;
 const server = http.createServer(app);
 const webSocketServer = new WebSocket.Server({ server });
 webSocketServer.on("connection", (webSocket) => {
-  console.info("Total connected clients:", webSocketServer.clients.size);
-
   webSocket.isAlive = true;
   webSocket.on('pong', () => {
     webSocket.isAlive = true;
@@ -56,17 +54,18 @@ webSocketServer.on("connection", (webSocket) => {
 
   app.locals.wsInstance = webSocket
   app.locals.clients = webSocketServer.clients;
+  console.info("Total connected clients:", webSocketServer.clients.size);
 });
 
 // Check broken connections and close
-const interval = setInterval(function ping() {
+const interval = setInterval(() => {
   webSocketServer.clients.forEach(ws => {
     if (ws.isAlive === false) return ws.terminate();
 
     ws.isAlive = false;
     ws.ping(() => {});
-  }, 30000);
-});
+  });
+}, 30000);
 
 webSocketServer.on('error', (error) => {
   console.info('websocket error', error)
