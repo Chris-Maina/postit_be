@@ -45,12 +45,12 @@ const generateRefreshToken = (userId, response) => {
       if (err) return reject(createError.InternalServerError());
       // Save token in cookie
       response.cookie("refreshToken", token, {
-        expiresIn: '30d',
+        maxAge: 2592000000, // equivalent to 30 days
         httpOnly: true,
         secure: false,
         sameSite: 'Strict'
       });
-      
+
       resolve(token);
     })
   });
