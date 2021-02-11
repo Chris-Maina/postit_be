@@ -48,7 +48,7 @@ const generateRefreshToken = (userId, response) => {
         maxAge: 2592000000, // equivalent to 30 days
         httpOnly: true,
         secure: false,
-        sameSite: 'Strict'
+        sameSite: 'strict'
       });
 
       resolve(token);
