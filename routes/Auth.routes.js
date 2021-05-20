@@ -48,11 +48,12 @@ router.post('/register', async (req, res, next) => {
       last_name,
       first_name,
       password: hashedPassword,
-    });
+    })
+    .returning('id', 'email', 'first_name', 'last_name');
     
 
     res.status(201);
-    return res.send(User.getUser(response));
+    return res.send(response);
   } catch (error) {
     if (error.isJoi) error.status = 422;
     next(error);
@@ -64,7 +65,10 @@ router.post('/login', async (req, res, next) => {
     const result = await loginSchema.validateAsync(req.body);
     const { email, password } = result;
 
-    const userRes = await User.query().findOne({ email });
+    const userRes = await User
+      .query()
+      .findOne({ email })
+      .returning('id', 'email', 'first_name', 'last_name', 'password');
     if (!userRes) throw createError.NotFound(`User is not registered`);
     
     const isPasswordValid = await User.validatePassword(password, userRes.password);
@@ -74,8 +78,9 @@ router.post('/login', async (req, res, next) => {
     await generateRefreshToken(userRes.id, res);
 
     res.status(200);
+    delete userRes.password
     return res.send({
-      ...User.getUser(userRes),
+      ...userRes,
       access_token: token,
     });
   } catch (error) {
